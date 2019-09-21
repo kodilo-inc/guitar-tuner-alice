@@ -8,7 +8,7 @@ module.exports = async (req, res) => {
   const { request, session, version } = await json(req);
   const skillId = 'c582ae95-f5df-48cc-bbf3-a9ce540a8931';
   const stringsNumbers = [1, 2, 3, 4, 5, 6];
-  const tokens = request.nlu.entities.tokens;
+  const tokens = request.nlu.tokens;
   const stringsInWords = {
     1: ['тонкая', 'нижняя', 'ми первой октавы'],
     2: ['си', 'b', 'б', 'би'],
@@ -61,7 +61,7 @@ module.exports = async (req, res) => {
         {
             version,
             session,
-            response
+            response,
         }
     ));
 };
