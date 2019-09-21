@@ -5,10 +5,11 @@ const { json } = require('micro');
 module.exports = async (req, res) => {
 
     // Из запроса извлекаются свойства request, session и version.
-    const { request, session, version } = await json(req);
-    const skillId = 'c582ae95-f5df-48cc-bbf3-a9ce540a8931';
-    const stringsNumbers = [1, 2, 3, 4, 5, 6];
-    const stringsInWords = {
+  const { request, session, version } = await json(req);
+  const skillId = 'c582ae95-f5df-48cc-bbf3-a9ce540a8931';
+  const stringsNumbers = [1, 2, 3, 4, 5, 6];
+  const tokens = request.nlu.entities.tokens;
+  const stringsInWords = {
       1: ['тонкая', 'нижняя', 'ми первой октавы'],
       2: ['си', 'b', 'б', 'би'],
       3: ['соль', 'g', 'джи'],
@@ -24,7 +25,7 @@ module.exports = async (req, res) => {
       5: '7bbb29d2-aca2-4c47-bc62-b2be77a68f38.opus',
       6: 'b4be4e3f-b464-4757-bf95-2edd1b4008c6.opus',
     };
-    const userStringNumber = getStringNumber(request);
+  const userStringNumber = getStringNumber(request);
     let responseIfWrongUserRequest = 'Назовите струну и я её сыграю';
     function getStringNumber (request) {
       const entities = request.nlu.entities;
@@ -36,7 +37,6 @@ module.exports = async (req, res) => {
           return null
         }
       }
-      const tokens = request.nlu.entities.tokens;
       let userStringNumberGuessedFromWords;
       stringsNumbers.some((stringNumber) => {
         if (tokens.some((token) => stringsInWords[stringNumber].includes(token))){
@@ -51,7 +51,7 @@ module.exports = async (req, res) => {
       response.tts = `<speaker audio="dialogs-upload/${skillId}/${audioIds[userStringNumber]}.opus">`;
       response.text = `Играю струну номер ${userStringNumber}`;
     } else {
-      response.text = responseIfWrongUserRequest;
+      response.text = tokens.includes('кто') ? 'Новицкас Станислав' : responseIfWrongUserRequest;
     }
 
     // В тело ответа вставляются свойства version и session из запроса.
