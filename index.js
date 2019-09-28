@@ -25,43 +25,53 @@ module.exports = async (req, res) => {
     5: '7bbb29d2-aca2-4c47-bc62-b2be77a68f38',
     6: 'b4be4e3f-b464-4757-bf95-2edd1b4008c6',
   };
-  const userStringNumber = getStringNumber(request);
+  let userStringNumber;
   let responseIfWrongUserRequest = 'Назовите струну и я её сыграю';
-    function getStringNumber (request) {
-      if (session.new || request.original_utterance === 'ping') return null;
-      const entities = request.nlu.entities;
-      if (entities.length === 1 && entities[0].type === 'YANDEX.NUMBER') {
-        if (stringsNumbers.includes(entities[0].value)) {
-          return entities[0].value
-        } else {
-          responseIfWrongUserRequest = 'Назовите число от одного до шести';
-          return null
-        }
+  if (!session.new && request.original_utterance !== 'ping') {
+    const entities = request.nlu.entities;
+    if (entities.length === 1 && entities[0].type === 'YANDEX.NUMBER') {
+      if (stringsNumbers.includes(entities[0].value)) {
+        userStringNumber = entities[0].value
+      } else {
+        responseIfWrongUserRequest = 'Назовите число от одного до шести';
       }
-      let userStringNumberGuessedFromWords;
+    } else {
       stringsNumbers.some((stringNumber) => {
-        if (tokens.some((token) => stringsInWords[stringNumber].includes(token))){
-          userStringNumberGuessedFromWords = stringNumber;
+        if (tokens.some((token) => stringsInWords[stringNumber].includes(token))) {
+          userStringNumber = stringNumber;
           return true
         }
       });
-      return userStringNumberGuessedFromWords
     }
-    let response = {end_session: false};
-    if (userStringNumber) {
-      response.tts = `<speaker audio="dialogs-upload/${skillId}/${audioIds[userStringNumber]}.opus">`;
-      response.text = `Играю струну номер ${userStringNumber}`;
-    } else {
-      response.text = tokens.includes('кто') ? 'Новицкас Станислав' : responseIfWrongUserRequest;
-    }
+  }
 
-    // В тело ответа вставляются свойства version и session из запроса.
-    // Подробнее о формате запроса и ответа — в разделе Протокол работы навыка.
-    res.end(JSON.stringify(
-        {
-            version,
-            session,
-            response,
-        }
-    ));
+  let response = {end_session: false};
+  if (userStringNumber) {
+    response.tts = `<speaker audio="dialogs-upload/${skillId}/${audioIds[userStringNumber]}.opus">`;
+    response.text = `Играю струну номер ${userStringNumber}`;
+  } else if (tokens.includes('кто')) {
+    response.text = 'Новицкас Станислав';
+    response.tts = 'Нов+итскас Станислав'
+  } else {
+    response.text = responseIfWrongUserRequest;
+    response.buttons = getButtons();
+  }
+
+  function getButtons() {
+    let buttons = [];
+    stringsNumbers.forEach((buttonNumber) => {
+      buttons.push({title: buttonNumber.toString()})
+    });
+    return buttons
+  }
+
+  // В тело ответа вставляются свойства version и session из запроса.
+  // Подробнее о формате запроса и ответа — в разделе Протокол работы навыка.
+  res.end(JSON.stringify(
+      {
+          version,
+          session,
+          response,
+      }
+  ));
 };
