@@ -9,10 +9,10 @@ module.exports = async (req, res) => {
   const stringsNumbers = [6, 5, 4, 3, 2, 1];
   const tokens = request.nlu.tokens;
   const stringsInWords = {
-    1: ['тонкая', 'нижняя', 'ми первой октавы'],
-    2: ['си', 'b', 'б', 'би'],
+    1: ['тонкая', 'нижняя', 'ми первой октавы', 'me', 'mi'],
+    2: ['си', 'b', 'б', 'би', 'si', 'se'],
     3: ['соль', 'g', 'джи'],
-    4: ['ре', 'рэ', 'd', 'дэ'],
+    4: ['ре', 'рэ', 'd', 'дэ', 're'],
     5: ['ля', 'a', 'а'],
     6: ['толстая', 'верхняя', 'ми большой октавы', 'e', 'йе'],
   };
@@ -40,6 +40,8 @@ module.exports = async (req, res) => {
   let userStringNumber;
   let responseIfWrongUserRequest = telStringPhrases[randomNumber].title;
   let responseTTSIfWrongUserRequest = telStringPhrases[randomNumber].tts;
+
+  // basic case, when user tels correct string
   if (!session.new && request.original_utterance !== 'ping') {
     const entities = request.nlu.entities;
     if (entities.length === 1 && entities[0].type === 'YANDEX.NUMBER') {
@@ -60,6 +62,7 @@ module.exports = async (req, res) => {
     }
   }
 
+  // cases where user tells incorrect/ambiguous string or ask another question
   if (userStringNumber) {
     response.tts = `<speaker audio="dialogs-upload/${skillId}/${audioIds[userStringNumber]}.opus">`;
     response.text = `Играю струну номер ${userStringNumber}`;
