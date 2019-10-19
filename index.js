@@ -1,10 +1,16 @@
-// Для асинхронной работы используется пакет micro.
-const { json } = require('micro');
+/**
+ * Entry-point for Serverless Function.
+ *
+ * @param event {Object} request payload.
+ * @param context {Object} information about current execution context.
+ *
+ * @return {Promise<Object>} response to be serialized as JSON.
+ */
 
 // Запуск асинхронного сервиса.
-module.exports = async (req, res) => {
+module.exports.handler = async (event, context) => {
 
-  const { request, session, version } = await json(req);
+  const { request, session, version } = event;
   const skillId = 'c582ae95-f5df-48cc-bbf3-a9ce540a8931';
   const stringsNumbers = [6, 5, 4, 3, 2, 1];
   const tokens = request.nlu.tokens;
@@ -103,14 +109,5 @@ module.exports = async (req, res) => {
     max = Math.floor(max);
     return Math.floor(Math.random() * (max - min + 1)) + min;
   }
-
-  // В тело ответа вставляются свойства version и session из запроса.
-  // Подробнее о формате запроса и ответа — в разделе Протокол работы навыка.
-  res.end(JSON.stringify(
-      {
-          version,
-          session,
-          response,
-      }
-  ));
+   return {version, session, response}
 };
