@@ -10,7 +10,7 @@
 // Запуск асинхронного сервиса.
 module.exports.handler = async (event, context) => {
 
-  const { request, session, version } = event;
+  const { request, session, version, meta } = event;
   const skillId = 'c582ae95-f5df-48cc-bbf3-a9ce540a8931';
   const stringsNumbers = [6, 5, 4, 3, 2, 1];
   const tokens = request.nlu.tokens;
@@ -32,6 +32,15 @@ module.exports.handler = async (event, context) => {
     5: '7bbb29d2-aca2-4c47-bc62-b2be77a68f38',
     6: 'b4be4e3f-b464-4757-bf95-2edd1b4008c6',
   };
+  const imgIds = {
+    0: '1656841/3129bee1a7f27b41b525',
+    1: '1030494/2e82e3a8c5158fb2f0ec',
+    2: '1540737/6648774186749604a49f',
+    3: '213044/f00db1c19aa04e72bddf',
+    4: '1540737/4d2486c98db1399adbe5',
+    5: '1540737/28d2e01301888dd900e8',
+    6: '1652229/68146341c0ddee4639a7',
+  };
   const telCorrectNumberPhrases = [
     {title: 'На моей гитаре всего 6 струн. Назовите число от одного до шести', tts: 'На моей гитаре всего шесть струн. Назовите число от одного до шести'},
     {title: 'Такой струны нет. Назовите номер струны от одного до шести', tts: 'Такой струны нет. Назовите номер струн+ы от одного до шести'},
@@ -47,7 +56,7 @@ module.exports.handler = async (event, context) => {
   let responseIfWrongUserRequest = telStringPhrases[randomNumber].title;
   let responseTTSIfWrongUserRequest = telStringPhrases[randomNumber].tts;
 
-  // basic case, when user tels correct string
+  // different ways to detect string number
   if (!session.new && request.original_utterance !== 'ping') {
     const entities = request.nlu.entities;
     if (entities.length === 1 && entities[0].type === 'YANDEX.NUMBER') {
@@ -68,10 +77,13 @@ module.exports.handler = async (event, context) => {
     }
   }
 
-  // cases where user tells incorrect/ambiguous string or ask another question
+  // basic case, when user tels correct string
   if (userStringNumber) {
     response.tts = `<speaker audio="dialogs-upload/${skillId}/${audioIds[userStringNumber]}.opus">`;
     response.text = `Играю струну номер ${userStringNumber}`;
+    if (meta && meta.interfaces && meta.interfaces.screen) setImgForResponse(userStringNumber)
+
+  // cases where user tells incorrect/ambiguous string or ask another question
   } else if (stringsWeDontPlayInWords.some((string) => request.original_utterance.includes(string))) {
     response.text = 'Такую ноту сыграть не могу. Могу сыграть только ми, си, соль, ре и ля';
   } else if (tokens.includes('ми')) {
@@ -93,7 +105,8 @@ module.exports.handler = async (event, context) => {
   } else {
     response.text = responseIfWrongUserRequest;
     response.buttons = getButtons();
-    if (responseTTSIfWrongUserRequest) response.tts = responseTTSIfWrongUserRequest
+    if (responseTTSIfWrongUserRequest) response.tts = responseTTSIfWrongUserRequest;
+    if (meta && meta.interfaces && meta.interfaces.screen) setImgForResponse(0)
   }
 
   function getButtons(numberList = stringsNumbers) {
@@ -108,6 +121,14 @@ module.exports.handler = async (event, context) => {
     min = Math.ceil(min);
     max = Math.floor(max);
     return Math.floor(Math.random() * (max - min + 1)) + min;
+  }
+
+  function setImgForResponse(stringNumber) {
+    response.card = {
+      type: 'BigImage',
+      image_id: imgIds[stringNumber],
+      title: response.text
+    }
   }
    return {version, session, response}
 };
