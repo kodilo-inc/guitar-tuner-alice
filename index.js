@@ -7,10 +7,16 @@
  * @return {Promise<Object>} response to be serialized as JSON.
  */
 
+const axios = require('axios');
+
+
 // Запуск асинхронного сервиса.
 module.exports.handler = async (event, context) => {
 
   const { request, session, version, meta } = event;
+
+  sendLogs(request, session);
+
   const skillId = 'c582ae95-f5df-48cc-bbf3-a9ce540a8931';
   const stringsNumbers = [6, 5, 4, 3, 2, 1];
   const tokens = request.nlu.tokens;
@@ -129,6 +135,15 @@ module.exports.handler = async (event, context) => {
       image_id: imgIds[stringNumber],
       title: response.text
     }
+  }
+
+  function sendLogs(request, session) {
+    axios({
+      method: 'post',
+      url: 'https://functions.yandexcloud.net/d4e2l3jh5np1bggi4ric',
+      headers: {'Content-Type': 'application/json'},
+      data: {request, session}
+    });
   }
    return {version, session, response}
 };
