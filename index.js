@@ -87,11 +87,13 @@ module.exports.handler = async (event, context) => {
   if (userStringNumber) {
     response.tts = `<speaker audio="dialogs-upload/${skillId}/${audioIds[userStringNumber]}.opus">`;
     response.text = `Играю струну номер ${userStringNumber}`;
+    response.buttons = getButtons();
     if (meta && meta.interfaces && meta.interfaces.screen) setImgForResponse(userStringNumber)
 
   // cases where user tells incorrect/ambiguous string or ask another question
   } else if (stringsWeDontPlayInWords.some((string) => request.original_utterance.includes(string))) {
     response.text = 'Такую ноту сыграть не могу. Могу сыграть только ми, си, соль, ре и ля';
+    response.buttons = getButtons();
   } else if (tokens.includes('ми')) {
     response.text = 'На гитаре есть 2 струны "ми": первая и шестая. Какую сыграть?';
     response.tts = 'На гитаре есть две струн+ы ми - - - первая и шестая. Какую сыграть';
@@ -99,12 +101,15 @@ module.exports.handler = async (event, context) => {
   } else if (tokens.includes('кто')) {
     response.text = 'Новицкас Станислав';
     response.tts = 'Нов+итскас Станислав'
+    response.buttons = getButtons();
   } else if (tokens.includes('стоп')) {
     response.text = 'Окей. Скажите хватит, если хотите выйти из навыка. Либо назовите струну, если хотите продолжить настраивать гитару';
     response.tts = 'Окей. Скажите хватит, если хотите выйти из навыка. Либо назовите струн+у, если хотите продолжить настраивать гитару';
+    response.buttons = getButtons();
   } else if (helpMePhrases.some((helpPhrase) => request.original_utterance.includes(helpPhrase))) {
-    response.text = 'Помогу настроить шестиструнную гитару в стандартном строе. Назовите струну и я её сыграю.';
-    response.tts = 'Помогу настроить шестиструнную гитару в стандартном строе. Назовите струн+у и я её сыграю.';
+    response.text = 'Помогу настроить шестиструнную гитару в стандартном строе. Назовите номер струны и я её сыграю. Первая струна — самая тонкая';
+    response.tts = 'Помогу настроить шестиструнную гитару в стандартном строе. Назовите номер струн+ы и я её сыграю. Первая струна самая тонкая';
+    response.buttons = getButtons();
   } else if (phrasesForExitSkill.some((stopPhrase) => request.original_utterance.includes(stopPhrase))) {
     response.text = 'До свидания';
     response.end_session = true;
@@ -118,8 +123,9 @@ module.exports.handler = async (event, context) => {
   function getButtons(numberList = stringsNumbers) {
     let buttons = [];
     numberList.forEach((buttonNumber) => {
-      buttons.push({title: buttonNumber.toString()})
+      buttons.push({title: buttonNumber.toString(), hide: true})
     });
+    buttons.push({title: 'помощь', hide: true});
     return buttons
   }
 
