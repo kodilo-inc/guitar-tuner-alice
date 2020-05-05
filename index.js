@@ -21,12 +21,12 @@ module.exports.handler = async (event, context) => {
   const stringsNumbers = [6, 5, 4, 3, 2, 1];
   const tokens = request.nlu.tokens;
   const stringsInWords = {
-    1: ['нижняя', 'нижнюю', 'ми', 'me', 'mi'],
-    2: ['си', 'b', 'б', 'би', 'si', 'se'],
+    1: ['нижняя', 'нижнюю', 'ми'],
+    2: ['си', 'b', 'б', 'би'],
     3: ['соль', 'g', 'джи'],
-    4: ['ре', 'рэ', 'd', 'дэ', 're'],
-    5: ['ля', 'a', 'а'],
-    6: ['верхняя', 'верхнюю', 'ми', 'e', 'йе'],
+    4: ['ре', 'рэ', 'р', 'd', 'дэ', 're'],
+    5: ['ля', 'a', 'а', 'эй'],
+    6: ['верхняя', 'верхнюю', 'ми'],
   };
   const stringsWeDontPlayInWords = ['до', 'фа'];
   const phrasesForExitSkill = ['выйди', 'выключи навык'];
