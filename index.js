@@ -11,22 +11,22 @@ const axios = require('axios');
 
 
 // Запуск асинхронного сервиса.
-module.exports.handler = async (event, context) => {
+module.exports.handler = async (event) => {
 
   const { request, session, version, meta } = event;
 
-  sendLogs(request, session);
+  // sendLogs(request, session);
 
   const skillId = 'c582ae95-f5df-48cc-bbf3-a9ce540a8931';
   const stringsNumbers = [6, 5, 4, 3, 2, 1];
   const tokens = request.nlu.tokens;
   const stringsInWords = {
-    1: ['нижняя', 'нижнюю', 'ми'],
-    2: ['си', 'b', 'б', 'би'],
+    1: ['тонкая', 'нижняя', 'ми первой октавы', 'me', 'mi'],
+    2: ['си', 'b', 'б', 'би', 'si', 'se'],
     3: ['соль', 'g', 'джи'],
-    4: ['ре', 'рэ', 'р', 'd', 'дэ', 're'],
-    5: ['ля', 'a', 'а', 'эй'],
-    6: ['верхняя', 'верхнюю', 'ми'],
+    4: ['ре', 'рэ', 'd', 'дэ', 're'],
+    5: ['ля', 'a', 'а'],
+    6: ['толстая', 'верхняя', 'ми большой октавы', 'e', 'йе'],
   };
   const stringsWeDontPlayInWords = ['до', 'фа'];
   const phrasesForExitSkill = ['выйди', 'выключи навык'];
@@ -47,20 +47,20 @@ module.exports.handler = async (event, context) => {
     5: '1521359/786f023983b5f884dd08',
     6: '1656841/3e0c0db6418999e9670a',
   };
-  const telCorrectNumberPhrases = [
+  const tellCorrectNumberPhrases = [
     {title: 'На моей гитаре всего 6 струн. Назовите число от одного до шести', tts: 'На моей гитаре всего шесть струн. Назовите число от одного до шести'},
     {title: 'Такой струны нет. Назовите номер струны от одного до шести', tts: 'Такой струны нет. Назовите номер струн+ы от одного до шести'},
     {title: 'Струны с таким номером нет. Назовите число от одного до шести', tts: 'Струн+ы с таким номером нет. Назовите число от одного до шести'}];
-  const telStringPhrases = [
+  const tellStringPhrases = [
     {title: 'Назовите струну и я её сыграю', tts: 'Назовите струн+у и я её сыграю'},
     {title: 'Назовите номер струны от одного до шести', tts: 'Назовите номер струн+ы от одного до шести'},
     {title: 'Назовите номер струны или ноту', tts: 'Назовите номер струн+ы или ноту'}];
   const helpMePhrases = ['помощь', 'что ты умеешь'];
-  const randomNumber = getRandomNumber(0, telStringPhrases.length - 1);
+  const randomNumber = getRandomNumber(0, tellStringPhrases.length - 1);
   let response = {end_session: false};
   let userStringNumber;
-  let responseIfWrongUserRequest = telStringPhrases[randomNumber].title;
-  let responseTTSIfWrongUserRequest = telStringPhrases[randomNumber].tts;
+  let responseIfWrongUserRequest = tellStringPhrases[randomNumber].title;
+  let responseTTSIfWrongUserRequest = tellStringPhrases[randomNumber].tts;
 
   // different ways to detect string number
   if (!session.new && request.original_utterance !== 'ping') {
@@ -69,9 +69,9 @@ module.exports.handler = async (event, context) => {
       if (stringsNumbers.includes(entities[0].value)) {
         userStringNumber = entities[0].value
       } else {
-        const randomNumber = getRandomNumber(0, telCorrectNumberPhrases.length - 1);
-        responseIfWrongUserRequest = telCorrectNumberPhrases[randomNumber].title;
-        responseTTSIfWrongUserRequest = telCorrectNumberPhrases[randomNumber].tts;
+        const randomNumber = getRandomNumber(0, tellCorrectNumberPhrases.length - 1);
+        responseIfWrongUserRequest = tellCorrectNumberPhrases[randomNumber].title;
+        responseTTSIfWrongUserRequest = tellCorrectNumberPhrases[randomNumber].tts;
       }
     } else {
       stringsNumbers.some((stringNumber) => {
@@ -83,14 +83,14 @@ module.exports.handler = async (event, context) => {
     }
   }
 
-  // basic case, when user tels correct string
+  // basic case, when user tells correct string
   if (userStringNumber) {
     response.tts = `<speaker audio="dialogs-upload/${skillId}/${audioIds[userStringNumber]}.opus">`;
     response.text = `Играю струну номер ${userStringNumber}`;
     response.buttons = getButtons();
     if (meta && meta.interfaces && meta.interfaces.screen) setImgForResponse(userStringNumber)
 
-  // cases where user tells incorrect/ambiguous string or ask another question
+    // cases where user tells incorrect/ambiguous string or ask another question
   } else if (stringsWeDontPlayInWords.some((string) => request.original_utterance.includes(string))) {
     response.text = 'Такую ноту сыграть не могу. Могу сыграть только ми, си, соль, ре и ля';
     response.buttons = getButtons();
@@ -151,5 +151,5 @@ module.exports.handler = async (event, context) => {
       data: {request, session}
     });
   }
-   return {version, session, response}
+  return {version, session, response}
 };
